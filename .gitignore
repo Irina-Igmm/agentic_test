@@ -1,29 +1,61 @@
-# Ignore environment variable files
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variable files
 .env
 .env.*
 
-# Ignore local configuration files
+# Local configuration files
 *.local.json
 *.local.yaml
 *.local.yml
 
-# Ignore secret keys and certificates
+# Secret keys, certificates, and private data
 *.pem
 *.key
 *.crt
 *.cert
-
-# Ignore any private data directories
 /private-data/
-/secrets/
+secrets/
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
-# Node.js dependencies if applicable
-node_modules/
+# Testing and coverage
+.coverage
+.tox/
+.nox/
+.cache/
+.pytest_cache/
 
-# Python sensitive config files (if applicable)
-*.pyc
-__pycache__/
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

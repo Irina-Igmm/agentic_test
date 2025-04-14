@@ -24,9 +24,9 @@ class GroqDirectLLM(BaseChatModel):
         self.model_name = model_name
         
     def _generate(self, 
-                messages: List[Dict[str, Any]], 
-                stop: Optional[List[str]] = None,
-                **kwargs) -> Dict[str, Any]:
+                  messages: List[Dict[str, Any]], 
+                  stop: Optional[List[str]] = None,
+                  **kwargs) -> Dict[str, Any]:
         """Generate a response from the Groq API."""
         # Convert LangChain message format to Groq format
         groq_messages = []
@@ -85,33 +85,10 @@ def main(topic=DEFAULT_TOPIC):
     analyst = create_analyst_agent(llm)
     report_writer = create_report_writer_agent(llm)
     
-    # Create tasks - properly chained using Task objects
-    research_task = Task(
-        description=f"Research and gather comprehensive information about {topic}. "
-                   f"Find the latest trends, key statistics, and notable developments. "
-                   f"Focus on factual information from reliable sources.",
-        agent=researcher,
-        expected_output="A detailed research document with facts, figures, and key insights about the topic."
-    )
-    
-    analysis_task = Task(
-        description="Analyze the research findings and extract key insights. "
-                   "Identify patterns, trends, and significant points. Highlight any surprising "
-                   "or counterintuitive information.",
-        agent=analyst,
-        context=[research_task],
-        expected_output="An analytical report with key insights, patterns identified, and significant conclusions."
-    )
-    
-    report_task = Task(
-        description="Create a clear, concise report based on the analysis. "
-                   "Structure the report with an executive summary, key findings, supporting evidence, "
-                   "and recommendations. Use a professional tone and ensure the report is accessible "
-                   "to non-technical readers.",
-        agent=report_writer,
-        context=[analysis_task],
-        expected_output="A well-structured, professional report ready for presentation to stakeholders."
-    )
+    # Create tasks using functions from tasks.py
+    research_task = create_research_task(researcher, topic)
+    analysis_task = create_analysis_task(analyst, research_task)
+    report_task = create_report_task(report_writer, analysis_task)
     
     # Create and run the crew
     crew = Crew(
