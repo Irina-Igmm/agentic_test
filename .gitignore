@@ -1,0 +1,29 @@
+# Ignore environment variable files
+.env
+.env.*
+
+# Ignore local configuration files
+*.local.json
+*.local.yaml
+*.local.yml
+
+# Ignore secret keys and certificates
+*.pem
+*.key
+*.crt
+*.cert
+
+# Ignore any private data directories
+/private-data/
+/secrets/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Node.js dependencies if applicable
+node_modules/
+
+# Python sensitive config files (if applicable)
+*.pyc
+__pycache__/

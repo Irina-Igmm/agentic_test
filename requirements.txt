@@ -1,0 +1,13 @@
+langchain-groq
+faiss-cpu
+crewai[tools]
+crewai-tools
+pypdf2
+python-dotenv
+setuptools
+sentence-transformers
+huggingface
+dotenv
+langchain-community
+langchain-huggingface
+groq
