@@ -13,7 +13,7 @@ from agentic_rag.knowledge.local_knowledge import LocalKnowledge
 from agentic_rag.knowledge.web_knowledge import WebKnowledge
 from agentic_rag.llm.answer_generator import AnswerGenerator
 
-from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_community.chat_message_histories import ChatMessageHistory
 import uuid
@@ -101,21 +101,21 @@ class AgenticRAG:
 
         print(f"Processing query: {query}")
 
-        # Step 1: Check if we can answer from local knowledge
-        can_answer_locally = KnowledgeRouter.check_local_knowledge(
-            query, self.local_context
-        )
+        # Recherche de similarité avec la requête utilisateur
+        context = LocalKnowledge.get_content(self.vector_db, query)
+        print(f"Context for query: {context[:300]}")
+
+        # Vérifie si le contexte est pertinent
+        can_answer_locally = KnowledgeRouter.check_local_knowledge(query, context)
         print(f"Can answer locally: {can_answer_locally}")
 
-        # Step 2: Get context either from local DB or web
+        # Génère la réponse avec ce contexte, sinon bascule sur le web
         if can_answer_locally:
-            context = LocalKnowledge.get_content(self.vector_db, query)
             print("Retrieved context from local documents")
         else:
             context = WebKnowledge.get_content(query, specific_urls)
             print("Retrieved context from web")
 
-        # Step 3: Generate final answer
         answer = AnswerGenerator.generate_answer(context, query)
         return answer
 
@@ -253,7 +253,30 @@ async def query_agent(query: str):
         # Utiliser RetrievalQA pour répondre à la requête
         answer = LocalKnowledge.get_content_with_retrievalqa(vector_db, query)
 
-        return {"query": query, "answer": answer}
+        return {"answer": answer}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/query-embedding")
+async def query_embedding(query: str = Query(..., description="Your search query")):
+    """
+    Test and evaluate the similarity search in local documents (FAISS).
+    Returns the most relevant chunks and their similarity scores.
+    """
+    if rag.vector_db is None:
+        return {"error": "No vector database initialized."}
+    try:
+        # Use similarity_search_with_score if available
+        results = rag.vector_db.similarity_search_with_score(query, k=5)
+        formatted = [
+            {
+                "content": doc.page_content,
+                "score": float(score)
+            }
+            for doc, score in results
+        ]
+        return {"results": formatted}
     except Exception as e:
         return {"error": str(e)}
 

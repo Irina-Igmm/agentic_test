@@ -12,6 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain_openai import OpenAI
 from langchain.chains import RetrievalQA
+from agentic_rag.llm.ollama_provider import OllamaProvider
 
 
 from ..config import EMBEDDINGS_MODEL, CHUNK_SIZE, CHUNK_OVERLAP, NUM_RESULTS
@@ -55,7 +56,8 @@ class LocalKnowledge:
 
             # Initialize the LLM (e.g., OpenAI or another model)
             llm = OpenAI(
-                temperature=0, max_tokens=500,
+                temperature=0,
+                max_tokens=500,
             )  # Remplacez par votre LLM si nécessaire
 
             # Create the RetrievalQA pipeline
@@ -67,7 +69,7 @@ class LocalKnowledge:
             )
 
             # Run the query through the QA pipeline
-            answer = qa_chain.run(query)
+            answer = qa_chain.invoke(query)
             return answer.strip()
         except Exception as e:
             print(f"Error in RetrievalQA pipeline: {e}")
@@ -134,6 +136,31 @@ class LocalKnowledge:
             return None
 
     @staticmethod
+    def semantic_rerank(query: str, docs: list) -> str:
+        """
+        Utilise un LLM pour sélectionner le chunk le plus pertinent pour la question.
+        """
+        if not docs:
+            return ""
+        prompt = (
+            "Voici plusieurs extraits de documents sur le bâtiment et l'énergie.\n"
+            "Synthétise une réponse à la question suivante en t'appuyant sur ces extraits.\n"
+            f"Question : {query}\n"
+            "Extraits :\n"
+        )
+        for i, doc in enumerate(docs):
+            prompt += f"[{i + 1}] {doc.page_content[:300]}\n"
+        prompt += "Réponds de façon concise et pédagogique."
+        response = OllamaProvider.generate_response(prompt)
+        try:
+            idx = int(response.strip()) - 1
+            if 0 <= idx < len(docs):
+                return docs[idx].page_content
+        except Exception:
+            pass
+        return docs[0].page_content
+
+    @staticmethod
     def get_content(vector_db: VectorStore, query: str) -> str:
         """
         Get relevant content from the vector database for a query.
@@ -146,4 +173,13 @@ class LocalKnowledge:
             str: The concatenated content of the most relevant documents.
         """
         docs = vector_db.similarity_search(query, k=NUM_RESULTS)
-        return " ".join([doc.page_content for doc in docs])
+        # Filtrage des doublons par snippet
+        seen = set()
+        filtered_docs = []
+        for doc in docs:
+            snippet = doc.page_content[:100]
+            if snippet not in seen:
+                filtered_docs.append(doc)
+                seen.add(snippet)
+        # Post-traitement sémantique avec LLM
+        return LocalKnowledge.semantic_rerank(query, filtered_docs)

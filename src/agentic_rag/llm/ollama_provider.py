@@ -1,5 +1,6 @@
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from agentic_rag.config import OLLAMA_MODEL
+
 
 class OllamaProvider:
     @staticmethod
@@ -15,9 +16,9 @@ class OllamaProvider:
         """
         try:
             # Initialize the Ollama client
-            client = Ollama()
-            response = client.complete(model=OLLAMA_MODEL, prompt=prompt)
-            return response["text"].strip()
+            llm = OllamaLLM(model=OLLAMA_MODEL)
+            response = llm.invoke(prompt=prompt)
+            return response.strip()
         except Exception as e:
             print(f"Error generating response with Ollama: {e}")
             return "An error occurred while generating the response."
