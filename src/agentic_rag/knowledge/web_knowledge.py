@@ -9,6 +9,36 @@ from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 from ..config import SERPER_API_KEY
 from ..llm.llm_provider import crew_llm
 
+from urllib.parse import urlparse
+
+def is_valid_url(url: str) -> bool:
+    """
+    Check if a URL is valid.
+
+    Args:
+        url: The URL to validate.
+
+    Returns:
+        bool: True if the URL is valid, False otherwise.
+    """
+    if not url:
+        return False
+    parsed = urlparse(url)
+    return bool(parsed.netloc) and bool(parsed.scheme)
+
+def truncate_text(text: str, max_tokens: int) -> str:
+    """
+    Truncate text to fit within the token limit.
+
+    Args:
+        text: The text to truncate.
+        max_tokens: The maximum number of tokens allowed.
+
+    Returns:
+        str: The truncated text.
+    """
+    return text[:max_tokens]
+
 class WebKnowledge:
     """
     Handles operations related to web knowledge retrieval using CrewAI.
@@ -98,13 +128,20 @@ class WebKnowledge:
         """
         # If specific URLs are provided, scrape them directly
         if specific_urls:
-            scrape_tool = ScrapeWebsiteTool()
+            print("urls: ", specific_urls)
+            # scrape_tool = ScrapeWebsiteTool(api_key=SERPER_API_KEY)
             combined_content = []
             
             for url in specific_urls:
+                if not url or not url.startswith("http"):
+                    print(f"Invalid URL: {url}. Skipping...")
+                    continue
                 try:
-                    content = scrape_tool.run(url)
-                    combined_content.append(f"Source: {url}\n{content}")
+                    # Appel de la méthode correcte
+                    tool = ScrapeWebsiteTool(website_url=url)
+                    content = tool.run()  # Utilisation de l'argument nommé 'url'
+                    truncated_content = truncate_text(content, max_tokens=6000)
+                    combined_content.append(f"Source: {url}\n{truncated_content}")
                 except Exception as e:
                     print(f"Error scraping {url}: {e}")
             

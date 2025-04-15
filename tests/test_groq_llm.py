@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Now we can import from src
-from src.main import setup_groq_direct_llm
+from src.main_old import setup_groq_direct_llm
 
 # Initialize the LLM
 llm = setup_groq_direct_llm()

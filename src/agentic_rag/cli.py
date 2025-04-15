@@ -7,7 +7,7 @@ import argparse
 from typing import List, Optional
 import time
 
-from .main import AgenticRAG, initialize_from_data_dir
+from ..main import AgenticRAG, initialize_from_data_dir
 from .config import DEFAULT_DATA_DIR
 
 

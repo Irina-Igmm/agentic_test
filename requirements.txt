@@ -11,3 +11,4 @@ dotenv
 langchain-community
 langchain-huggingface
 groq
+python-multipart

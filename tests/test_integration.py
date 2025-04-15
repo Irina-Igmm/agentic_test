@@ -11,7 +11,7 @@ import sys
 # Add the src directory to the path to make imports work
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from src.agentic_rag.main import AgenticRAG
+from src.main import AgenticRAG
 from src.agentic_rag.knowledge.knowledge_router import KnowledgeRouter
 from src.agentic_rag.knowledge.local_knowledge import LocalKnowledge
 from src.agentic_rag.knowledge.web_knowledge import WebKnowledge
